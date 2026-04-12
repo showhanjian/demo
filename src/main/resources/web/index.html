@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ccb demo chat</title>
+    <link rel="stylesheet" href="css/chat.css">
+</head>
+<body>
+    <div class="chat-container">
+        <header class="chat-header">
+            <h1>ccb demo chat</h1>
+            <div class="header-controls">
+                <span id="sessionIdDisplay" class="session-id"></span>
+                <label>轮询间隔: <input type="number" id="pollIntervalInput" value="2" min="1" max="60">秒</label>
+                <button id="clearBtn" class="btn-clear">清空会话</button>
+            </div>
+        </header>
+
+        <div id="messages" class="messages"></div>
+
+        <div id="plan-progress" class="plan-progress" style="display:none;">
+            <h3>执行进度</h3>
+            <div id="plan-steps"></div>
+        </div>
+
+        <footer class="chat-input">
+            <input type="text" id="messageInput" placeholder="输入消息..." autocomplete="off">
+            <button id="sendBtn">发送</button>
+        </footer>
+    </div>
+
+    <script src="js/chat.js"></script>
+</body>
+</html>
