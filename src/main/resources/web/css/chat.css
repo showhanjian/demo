@@ -77,6 +77,20 @@ body {
     background: rgba(255,255,255,0.3);
 }
 
+.btn-new-chat {
+    padding: 6px 12px;
+    background: #4CAF50;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.btn-new-chat:hover {
+    background: #45a049;
+}
+
 .messages {
     flex: 1;
     overflow-y: auto;

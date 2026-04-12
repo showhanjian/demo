@@ -3,6 +3,7 @@
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
     const clearBtn = document.getElementById('clearBtn');
+    const newChatBtn = document.getElementById('newChatBtn');
     const planProgress = document.getElementById('plan-progress');
     const planSteps = document.getElementById('plan-steps');
 
@@ -12,7 +13,7 @@
 
     // 初始化sessionId
     if (!sessionId) {
-        sessionId = 'session_' + Date.now();
+        sessionId = String(Date.now());
         localStorage.setItem('sessionId', sessionId);
     }
     document.getElementById('sessionIdDisplay').textContent = '会话: ' + sessionId;
@@ -24,10 +25,40 @@
         console.log('[addMessage] content=' + content.substring(0, 50) + '..., type=' + type);
         const div = document.createElement('div');
         div.className = 'message ' + type;
-        div.innerHTML = '<div class="message-content">' + content + '</div><div class="message-time">' + new Date().toLocaleTimeString() + '</div>';
+        div.innerHTML = '<div class="message-content">' + escapeHtml(content) + '</div><div class="message-time">' + new Date().toLocaleTimeString() + '</div>';
         messagesContainer.appendChild(div);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
         console.log('[addMessage] 消息已添加到DOM');
+    }
+
+    // HTML转义
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // 格式化计划消息
+    function formatPlanMessage(data) {
+        if (typeof data === 'string') return escapeHtml(data);
+        const lines = [];
+        lines.push('计划: ' + (data.planName || '未命名'));
+        if (data.result_context) lines.push('说明: ' + data.result_context);
+        return lines.map(escapeHtml).join('\n');
+    }
+
+    // 格式化步骤消息
+    function formatStepMessage(stepData, status) {
+        const icon = status === 'started' ? '开始' : '完成';
+        const name = stepData.stepName || '未知步骤';
+        const desc = stepData.stepDescription || '';
+        let text = '[' + icon + '] ' + name;
+        if (desc) {
+            text += '\n   ' + desc;
+        }
+        if (stepData.stepOutcome) {
+            text += '\n结果: ' + stepData.stepOutcome;
+        }
+        return escapeHtml(text);
     }
 
     // 添加加载状态
@@ -48,23 +79,23 @@
         if (loading) loading.remove();
     }
 
-    // 创建计划消息（简化版，直接显示原始数据）
+    // 创建计划消息
     function addPlanMessage(event) {
         console.log('[addPlanMessage] event=', event);
         const div = document.createElement('div');
         div.className = 'message agent';
-        div.innerHTML = '<div class="message-content" style="max-width:100%;word-wrap:break-word;white-space:pre-wrap;">' + JSON.stringify(event, null, 2) + '</div>';
+        div.innerHTML = '<div class="message-content" style="white-space:pre-wrap;">' + formatPlanMessage(event) + '</div>';
         messagesContainer.appendChild(div);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
         return div;
     }
 
-    // 更新计划步骤（简化版）
+    // 更新计划步骤
     function updatePlanMessage(msgDiv, stepData, status) {
         console.log('[updatePlanMessage] status=' + status + ', stepData=', stepData);
         const div = document.createElement('div');
         div.className = 'message agent';
-        div.innerHTML = '<div class="message-content" style="max-width:100%;word-wrap:break-word;white-space:pre-wrap;">[step_' + status + '] ' + JSON.stringify(stepData, null, 2) + '</div>';
+        div.innerHTML = '<div class="message-content" style="white-space:pre-wrap;">' + formatStepMessage(stepData, status) + '</div>';
         messagesContainer.appendChild(div);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
@@ -81,35 +112,71 @@
 
         switch (event.eventType) {
             case 'intent_result':
-                console.log('[handlePlanEvent] case: intent_result, event.data=' + (event.data ? event.data.substring(0, 100) : 'null'));
-                addMessage('意图: ' + event.data, 'agent');
+                try {
+                    const match = event.data.match(/```json\s*([\s\S]*?)\s*```/);
+                    const jsonStr = match ? match[1] : event.data;
+                    const obj = JSON.parse(jsonStr);
+                    addMessage(obj.result_context, 'agent');
+                } catch (e) {
+                    addMessage(event.data, 'agent');
+                }
                 break;
             case 'plan_created':
-                console.log('[handlePlanEvent] case: plan_created, event.data类型=' + typeof event.data);
-                planMessageId = addPlanMessage(event.data);
+                try {
+                    const raw = typeof event.data === 'string' ? event.data : JSON.stringify(event.data);
+                    const match = raw.match(/```json\s*([\s\S]*?)\s*```/);
+                    const obj = JSON.parse(match ? match[1] : raw);
+                    addMessage(obj.result_context || obj.planName || raw, 'agent');
+                } catch (e) {
+                    addMessage(typeof event.data === 'string' ? event.data : JSON.stringify(event.data), 'agent');
+                }
                 break;
             case 'step_started':
-                console.log('[handlePlanEvent] case: step_started, event.data=' + JSON.stringify(event.data).substring(0, 100));
-                console.log('[handlePlanEvent] step_started, planMessageId=' + planMessageId);
-                if (planMessageId) updatePlanMessage(planMessageId, event.data, 'started');
-                else console.log('[handlePlanEvent] step_started跳过: planMessageId为null');
+                try {
+                    const data = typeof event.data === 'string' ? event.data : JSON.stringify(event.data);
+                    const obj = typeof data === 'object' ? data : JSON.parse(data);
+                    const startInfo = '开始第 ' + (obj.stepIndex + 1) + ' 步: ' + (obj.stepName || '未知步骤') + '\n' + obj.stepDescription;
+                    addMessage(startInfo, 'agent');
+                } catch (e) {
+                    addMessage('▶ ' + event.data, 'agent');
+                }
                 break;
-            case 'step_finished':
-                console.log('[handlePlanEvent] case: step_finished, planMessageId=' + planMessageId);
-                if (planMessageId) updatePlanMessage(planMessageId, event.data, 'finished');
+            /*case 'step_finished':
+                try {
+                    const data = typeof event.data === 'string' ? event.data : JSON.stringify(event.data);
+                    const obj = typeof data === 'object' ? data : JSON.parse(data);
+                    const finishInfo = '第 ' + (obj.stepIndex + 1) + ' 步完成: ' + (obj.stepName || '未知步骤') + '\n' + obj.stepDescription;
+                    addMessage(finishInfo, 'agent');
+                    if (obj.stepDescription) {
+                        addMessage(obj.stepDescription, 'agent');
+                    }
+                    if (obj.stepOutcome) {
+                        addMessage( obj.stepOutcome, 'agent');
+                    }
+                } catch (e) {
+                    addMessage('✓ ' + event.data, 'agent');
+                }
                 break;
+                */
             case 'plan_finished':
                 console.log('[handlePlanEvent] case: plan_finished');
                 addMessage('计划执行完成', 'agent');
                 break;
             case 'summary_result':
                 console.log('[handlePlanEvent] case: summary_result');
-                addMessage('总结: ' + event.data, 'agent');
+                addMessage('【总结】\n' + event.data, 'agent');
                 break;
-            case 'report_content':
+            case 'report_content': {
                 console.log('[handlePlanEvent] case: report_content');
-                addMessage('报表: ' + event.data, 'agent');
+                const div = document.createElement('div');
+                div.className = 'message agent';
+                const escaped = escapeHtml('【报表】\n' + event.data).replace(/\n/g, '<br>');
+                div.innerHTML = '<div class="message-content">' + escaped + '</div>'
+                    + '<div class="message-time">' + new Date().toLocaleTimeString() + '</div>';
+                messagesContainer.appendChild(div);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 break;
+            }
             case 'error':
                 console.log('[handlePlanEvent] case: error, event.message=' + event.message);
                 addMessage('错误: ' + event.message, 'error');
@@ -128,6 +195,10 @@
         while (true) {
             loopCount++;
             console.log('[startPolling] 第' + loopCount + '次循环');
+
+            const pollIntervalInput = document.getElementById('pollIntervalInput');
+            const intervalSec = pollIntervalInput ? Math.max(1, parseInt(pollIntervalInput.value) || 1) : 1;
+            const intervalMs = intervalSec * 1000;
 
             try {
                 console.log('[startPolling] 发送pull请求...');
@@ -159,8 +230,8 @@
                     break;
                 }
 
-                console.log('[startPolling] 等待300ms...');
-                await sleep(300);
+                console.log('[startPolling] 等待' + intervalMs + 'ms...');
+                await sleep(intervalMs);
             } catch (e) {
                 console.error('[startPolling] 异常: ' + e.message);
                 await sleep(1000);
@@ -219,7 +290,7 @@
     // 清空会话
     function clearSession() {
         console.log('[clearSession] 清空会话');
-        sessionId = 'session_' + Date.now();
+        sessionId = String(Date.now());
         localStorage.setItem('sessionId', sessionId);
         messagesContainer.innerHTML = '';
         planProgress.style.display = 'none';
@@ -229,9 +300,24 @@
         addMessage('会话已清空，请开始新对话', 'agent');
     }
 
+    // 开新对话
+    function newChat() {
+        console.log('[newChat] 开新对话');
+        sessionId = String(Date.now());
+        localStorage.setItem('sessionId', sessionId);
+        document.getElementById('sessionIdDisplay').textContent = '会话: ' + sessionId;
+        messagesContainer.innerHTML = '';
+        planProgress.style.display = 'none';
+        planSteps.innerHTML = '';
+        planMessageId = null;
+        sendBtn.disabled = false;
+        addMessage('你好！我是demo助手，请输入你的问题。', 'agent');
+    }
+
     sendBtn.addEventListener('click', sendMessage);
     messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
     clearBtn.addEventListener('click', clearSession);
+    newChatBtn.addEventListener('click', newChat);
 
     addMessage('你好！我是demo助手，请输入你的问题。', 'agent');
     messageInput.focus();

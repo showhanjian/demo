@@ -137,6 +137,11 @@ public class WorkflowService {
 
                 // 计划执行完成，写入事件
                 messageProducer.push(sessionId, "completed", Events.planFinished("计划执行完成"));
+
+                // 持久化 WorkerState 暂时先回到最初始化状态，等待用户新输入触发下一轮流程
+                state.worker = Worker.INTENT;
+                state.status = Status.NEED_MORE;
+                sessionService.saveState(userId, sessionId, state);
                 break;
 
             } else if (state.worker == Worker.SUMMARY) {

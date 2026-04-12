@@ -51,14 +51,6 @@ public class MessageProducer {
         logger.info("[MessageProducer] push, sessionId={}, seq={}, status={}, consumed={}, data={}", sessionId, seq, status, msg.consumed, dataPreview);
     }
 
-    private String getEventType(Object data) {
-        if (data == null) return "null";
-        if (data instanceof agent.util.Events.Event) {
-            return ((agent.util.Events.Event) data).eventType;
-        }
-        return data.getClass().getSimpleName();
-    }
-
     /**
      * 获取消息队列（供 MessageConsumer 共享使用）
      */

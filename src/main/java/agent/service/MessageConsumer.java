@@ -68,11 +68,4 @@ public class MessageConsumer {
         logger.info("[MessageConsumer] ack, sessionId={}, seq={} (队列模式，已通过poll移除)", sessionId, sequence);
     }
 
-    private String getEventType(Object data) {
-        if (data == null) return "null";
-        if (data instanceof agent.util.Events.Event) {
-            return ((agent.util.Events.Event) data).eventType;
-        }
-        return data.getClass().getSimpleName();
-    }
 }

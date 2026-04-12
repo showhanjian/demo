@@ -10,7 +10,7 @@ Multi-agent system built on AgentScope framework (v1.0.9) with a 3-agent Pipelin
 - **前端资源**: `src/main/resources/web/` (静态文件在 `web/`)
 - **lib_ref/**: AgentScope 库源码参考 (不可编辑)
 
-**项目根目录**: `D:\My_play\agentScope\demo0410`
+**项目根目录**: `D:\My_play\agentScope\demo`
 
 ## 构建命令
 
@@ -24,9 +24,13 @@ mvn spring-boot:run
 
 ## 环境变量
 
-- `ATEST_AUTH_TOKEN` - API key for model calls
-- `ATEST_BASE_URL` - API base URL (e.g., `https://api.minimaxi.com/v1`)
-- `ATEST_MODEL` - Model name (e.g., `MiniMax-M2.7`)
+配置于 `application.properties` 或系统环境变量：
+
+| 变量 | 说明 |
+|------|------|
+| `ATEST_AUTH_TOKEN` | API key for model calls |
+| `ATEST_BASE_URL` | API base URL (e.g., `https://api.minimaxi.com/v1`) |
+| `ATEST_MODEL` | Model name (e.g., `MiniMax-M2.7`) |
 
 ## 3-Agent Pipeline 架构
 
@@ -116,37 +120,31 @@ this.agent = ReActAgent.builder()
 
 采用异步轮询模式：
 - 前端 POST `/api/chat/send` 发送消息，后端立即返回 `{"status": "ok"}`
-- 后台异步执行，事件写入 MessageStore
-- 前端轮询 `/api/events/{sessionId}` 获取事件
+- 后台异步执行（线程池），事件写入 MessageStore
+- 前端轮询 GET `/api/events/pull?sessionId=` 获取事件
 
 ### 核心组件
 
 | 组件 | 说明 |
 |------|------|
-| MessageStore | 内存消息队列，存储 session 对应的事件 |
-| EventsController | 轮询接口 GET /api/events/{sessionId} |
-| ExecutionContext | 线程上下文，传递 sessionId（ThreadLocal） |
+| MessageProducer | 内存消息生产者，写入 session 对应的 ConcurrentLinkedQueue |
+| MessageConsumer | 消费 MessageProducer 的队列，ack 后标记已消费 |
+| ExecutionContext | ThreadLocal 上下文，在异步线程间传递 userId/sessionId |
+
+**注意**: PlanNotebook 注册了 `plan-event-pusher` 钩子，会在计划状态变化时自动推送事件到前端。
 
 ### SessionEvent 事件类型
 
 | eventType | 说明 | data |
 |-----------|------|------|
 | intent_result | 意图识别结果 | JSON 字符串 |
-| plan_created | 计划方案已生成 | JSON: {planName, plan_context} |
+| plan_created | 计划方案已生成 | JSON: {planName, result_context} |
 | step_started | 步骤开始执行 | {stepIndex, stepName} |
 | step_finished | 步骤执行完成 | {stepIndex, stepName} |
 | plan_finished | 计划执行完成 | 结果数据 |
 | summary_result | 总结生成完成 | 总结文本 |
 | report_content | 报表内容 | 报表文本内容 |
 | error | 错误信息 | 错误消息 |
-
-### 启动
-
-```bash
-mvn spring-boot:run
-```
-- 启动前确认端口 8080 未被占用
-- 启动后访问 http://localhost:8080
 
 ## 工具系统
 
