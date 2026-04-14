@@ -194,6 +194,11 @@
 
         while (true) {
             loopCount++;
+            if (loopCount > 50) {
+                console.log('[startPolling] 超过50次, 退出轮询');
+                addMessage('轮询超时，请重试', 'error');
+                break;
+            }
             console.log('[startPolling] 第' + loopCount + '次循环');
 
             const pollIntervalInput = document.getElementById('pollIntervalInput');
@@ -216,7 +221,7 @@
                 const msg = text ? JSON.parse(text) : null;
                 console.log('[startPolling] msg=' + (msg ? '非null' : 'null'));
                 if (msg) {
-                    console.log('[startPolling] msg.sequence=' + msg.sequence + ', msg.status=' + msg.status + ', msg.consumed=' + msg.consumed);
+                    console.log('[startPolling] msg.status=' + msg.status);
                     console.log('[startPolling] msg.data=' + (msg.data ? JSON.stringify(msg.data).substring(0, 100) : 'null'));
                 }
 
@@ -271,12 +276,12 @@
             console.log('[sendMessage] 响应数据: ' + JSON.stringify(data));
             removeLoadingMessage();
 
-            if (data.success) {
-                console.log('[sendMessage] data.success=true, 开始轮询');
+            if (data.status === 'success') {
+                console.log('[sendMessage] status=success, 开始轮询');
                 startPolling();
-            } else if (data.error) {
-                console.log('[sendMessage] data.error=' + data.error);
-                addMessage('错误: ' + data.error, 'error');
+            } else {
+                console.log('[sendMessage] status=' + data.status + ', data=' + data.data);
+                addMessage('错误: ' + data.data, 'error');
                 sendBtn.disabled = false;
             }
         } catch (e) {

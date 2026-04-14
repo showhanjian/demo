@@ -74,12 +74,12 @@ src/main/resources/
 │   └── summary_knowledge/
 ├── system_repo/                           # 系统提示词
 │   ├── IntentAgent.md, PlannerAgent.md, SummaryAgent.md
-│   └── System.md
+│   └── SYSTEM.md
 ├── web/                                   # 前端资源
 │   ├── index.html, js/chat.js, css/chat.css
 └── user_repo/{userId}/                    # 用户级记忆
-    ├── user_entities.md
-    └── user_behavior.md
+    ├── SOUL.md
+    └── MEMORY.md
 ```
 
 路径配置在 `application.properties` 的 `app.storage.*` 属性。
@@ -98,7 +98,7 @@ this.memory = new InMemoryMemory();
 SkillBox skillBox = new SkillBox(new Toolkit());
 registerSkills(skillBox, skillRepoPath);
 
-// sysPrompt 组装：System.md + user_entities.md + user_behavior.md
+// sysPrompt 组装：SYSTEM.md + SOUL.md + MEMORY.md
 this.agent = ReActAgent.builder()
     .name("AgentName")
     .sysPrompt(loadSystemPrompt(systemRepoPath, userRepoPath, userId))

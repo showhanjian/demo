@@ -44,6 +44,11 @@
             <artifactId>agentscope-extensions-studio</artifactId>
             <version>1.0.9</version>
         </dependency>
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-extensions-autocontext-memory</artifactId>
+            <version>1.0.9</version>
+        </dependency>
         <!-- Logback (managed by Spring Boot parent) -->
     </dependencies>
 

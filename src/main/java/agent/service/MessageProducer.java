@@ -16,8 +16,15 @@ public class MessageProducer {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageProducer.class);
 
-    private final Map<String, ConcurrentLinkedQueue<Message>> sessionQueues = new ConcurrentHashMap<>();
-    private final Map<String, Long> sequences = new ConcurrentHashMap<>();
+    /**
+     * 消息结构
+     */
+    public static class Msg {
+        public String status;
+        public Object data;
+    }
+
+    private final Map<String, ConcurrentLinkedQueue<Msg>> sessionQueues = new ConcurrentHashMap<>();
 
     /**
      * 推送消息
@@ -26,14 +33,8 @@ public class MessageProducer {
      * @param data 消息内容
      */
     public void push(String sessionId, String status, Object data) {
-        long seq = sequences.computeIfAbsent(sessionId, k -> 0L) + 1;
-        sequences.put(sessionId, seq);
-
-        Message msg = new Message();
-        msg.sessionId = sessionId;
-        msg.sequence = seq;
+        Msg msg = new Msg();
         msg.status = status;
-        msg.consumed = 0;
         msg.data = data;
 
         sessionQueues.computeIfAbsent(sessionId, k -> new ConcurrentLinkedQueue<>()).offer(msg);
@@ -48,13 +49,13 @@ public class MessageProducer {
                 dataPreview = data.getClass().getSimpleName() + ": " + data.toString().substring(0, Math.min(100, data.toString().length()));
             }
         }
-        logger.info("[MessageProducer] push, sessionId={}, seq={}, status={}, consumed={}, data={}", sessionId, seq, status, msg.consumed, dataPreview);
+        logger.info("[MessageProducer] push, sessionId={}, status={}, data={}", sessionId, status, dataPreview);
     }
 
     /**
      * 获取消息队列（供 MessageConsumer 共享使用）
      */
-    public Map<String, ConcurrentLinkedQueue<Message>> getSessionQueues() {
+    public Map<String, ConcurrentLinkedQueue<Msg>> getSessionQueues() {
         return sessionQueues;
     }
 }

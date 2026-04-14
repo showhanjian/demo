@@ -6,10 +6,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Agent 配置类
+ * 应用配置类
  */
 @Configuration
-public class AgentConfig {
+public class AppConfig {
 
     @Value("${app.storage.sessions}")
     private String sessionsPath;

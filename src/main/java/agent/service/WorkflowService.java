@@ -51,7 +51,7 @@ public class WorkflowService {
 
         this.intentAgent = new IntentAgent(modelConfig, skillRepoPath, systemRepoPath, userRepoPath, sessionRepoPath);
         this.plannerAgent = new PlannerAgent(modelConfig, skillRepoPath, systemRepoPath, userRepoPath, sessionRepoPath, messageProducer);
-        this.summaryAgent = new SummaryAgent(modelConfig, skillRepoPath, systemRepoPath, userRepoPath, sessionRepoPath, messageProducer);
+        this.summaryAgent = new SummaryAgent(modelConfig, skillRepoPath, systemRepoPath, userRepoPath, sessionRepoPath);
 
         logger.info("[WorkflowService] 初始化完成");
     }

@@ -7,14 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Map;
+
 /**
  * 全局异常处理与自定义异常
  */
 public class Exceptions {
 
     private static final Logger logger = LoggerFactory.getLogger(Exceptions.class);
-
-    // ========== 自定义异常 ==========
 
     public static class AgentExecutionException extends RuntimeException {
         public AgentExecutionException(String message) {
@@ -26,29 +26,27 @@ public class Exceptions {
         }
     }
 
-    // ========== 全局异常处理器 ==========
-
     @RestControllerAdvice
     public static class Handler {
 
         @ExceptionHandler(IllegalArgumentException.class)
-        public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException e) {
+        public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException e) {
             logger.warn("[Exceptions] 参数错误: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "data", e.getMessage()));
         }
 
         @ExceptionHandler(AgentExecutionException.class)
-        public ResponseEntity<ApiResponse<Void>> handleAgentException(AgentExecutionException e) {
+        public ResponseEntity<Map<String, Object>> handleAgentException(AgentExecutionException e) {
             logger.error("[Exceptions] Agent执行异常: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.fail("执行失败: " + e.getMessage()));
+                .body(Map.of("status", "error", "data", "执行失败: " + e.getMessage()));
         }
 
         @ExceptionHandler(Exception.class)
-        public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception e) {
+        public ResponseEntity<Map<String, Object>> handleGenericException(Exception e) {
             logger.error("[Exceptions] 未处理异常: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.fail("系统异常，请稍后重试"));
+                .body(Map.of("status", "error", "data", "系统异常，请稍后重试"));
         }
     }
 }

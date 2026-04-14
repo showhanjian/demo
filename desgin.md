@@ -53,7 +53,7 @@
 根据上述思路，结合目前行里应用情况简化设计：
 长期记忆（文件）/
 ├── system_repo/   # 系统级
-│   ├── System.md                   # 最高行为准则（LLM必加）
+│   ├── SYSTEM.md                   # 最高行为准则（LLM必加）
 │   ├── IntentAgent.md              # 智能体目标 规则、输入输出
 │   ├── PlannerAgent.md              # 智能体目标 规则、输入输出
 │   ├── SummaryAgent.md             # 智能体目标 规则、输入输出
@@ -62,8 +62,8 @@
 │
 ├── user_repo/     # 用户级（实体与经验）
 │   └── {user_id}/                 # 用户ID
-│       ├── user_entities.md       # 用户身份岗位、权限信息（LLM+）
-│       ├── user_behavior.md      # 习惯经验沉淀（主动更新，LLM+）
+│       ├── SOUL.md       # 用户身份岗位、权限信息（LLM+）
+│       ├── MEMORY.md      # 习惯经验沉淀（主动更新，LLM+）
 │       └── backup/                # 版本备份目录
 │            └── {filename}_{time}   # 按文件名称+时间戳归档
 │
@@ -114,8 +114,8 @@ Msg(消息对象)  id, name, role, content, metadata, timestamp
 4、搜索时：先查 SQLite 找相关 chunk → 返回原文片段，文件路径 + 行号关联
 
 上下文层次：
-System.md # 最高行为准则
-user_entities.md、user_behavior.md #用户属性
+SYSTEM.md # 最高行为准则
+SOUL.md、MEMORY.md #用户属性
 UserInput 用户请求信息 + session中的之前的result
 IntentAgent.md or PlannerAgent.md or SummaryAgent.md #智能体行为目标	规则、输入输出强约束，组织角色边界隔离。
 SKILLS元数据 # 概要说明----（每个agent的skill可动态组装）
@@ -214,8 +214,8 @@ result = summaryAgent.summarizeAsync
    - 创建 SkillBox，注册skill_repo/环境下intent_analysis技能
    - 加载模型modelConfig等
 2. Bootstrap组装
-   - 读取：system_repo/System.md 系统级
-   - 读取：user_repo/user_entities.md + user_behavior.md 用户级
+   - 读取：system_repo/SYSTEM.md 系统级
+   - 读取：user_repo/SOUL.md + MEMORY.md 用户级
    - 构建用户消息：Msg(name=userId, role=USER, content=userInput)
 3. LLM推理
    - 读取：IntentAgent.md 智能体目标 规则、输入输出
@@ -241,8 +241,8 @@ While（skill_list）
 {   skill_repo/环境加载、SkillBox注册  }
    - 加载模型modelConfig等
 2. Bootstrap组装
-   - 读取：system_repo/System.md 系统级
-   - 读取：user_repo/user_entities.md + user_behavior.md 用户级
+   - 读取：system_repo/SYSTEM.md 系统级
+   - 读取：user_repo/SOUL.md + MEMORY.md 用户级
    - 构建用户消息：Msg(name=userId, role=USER, content=userInput)
 3. LLM推理
    - 读取：PlannerAgent.md 智能体目标 规则、输入输出
@@ -289,7 +289,7 @@ While（skill_list）
 
 5.3.4.知识总结更新
 功能说明：
-根据会话流程中的上下文、及成功失败结果（sessions messages），通过SummaryAgent调用Summary_knowledge技能，分析归纳问题和经验规则，追加及更新用户级习惯策略归纳沉淀user_behavior.md和技能级仓库/参考案例resources/examples），便于下次会话更精准使用。
+根据会话流程中的上下文、及成功失败结果（sessions messages），通过SummaryAgent调用Summary_knowledge技能，分析归纳问题和经验规则，追加及更新用户级习惯策略归纳沉淀MEMORY.md和技能级仓库/参考案例resources/examples），便于下次会话更精准使用。
 当前方案：
 流程主控 --> 触发summarizeAsync(不等待完成) -->返回结果给用户
                               ↓
@@ -301,8 +301,8 @@ While（skill_list）
    - 创建 SkillBox，注册skill_repo/环境下Summary_knowledge技能
    - 加载模型modelConfig等
 2. Bootstrap组装
-   - 读取：system_repo/System.md 系统级
-   - 读取：user_repo/user_entities.md + user_behavior.md 用户级
+   - 读取：system_repo/SYSTEM.md 系统级
+   - 读取：user_repo/SOUL.md + MEMORY.md 用户级
    - 构建用户消息：Msg(name=userId, role=USER, content=userInput)
 3. LLM推理React执行
    - 读取：SummaryAgent.md 智能体目标 规则、输入输出
@@ -313,7 +313,7 @@ While（skill_list）
    - LLM分析成功经验和失败教训，生成更新内容
 （此处上下文较大，需看情况考虑摘要）
 4. 解析并更新状态
-   - 写入：user_repo/{user_id}/user_behavior.md → 用户习惯策略
+   - 写入：user_repo/{user_id}/MEMORY.md → 用户习惯策略
    - 写入：skill_repo/*/examples/*.md → 技能案例积累
 	- 解析结果，parseStatus() 更新 WorkerState持久化
 	- 保存会话 Memory 到 JsonSession持久化
@@ -393,7 +393,7 @@ LLM 调用 load_skill_through_path，激活技能 + 激活对应工具组
 对用户记忆文件user_repo、sessions_repo进行可视化配置管理，包括查询、维护、压缩和归档等。
 当前方案：
 - 长期记忆：
-查看、编辑用户身份和偏好user_behavior.md，user_entities.md
+查看、编辑用户身份和偏好MEMORY.md，SOUL.md
 修改更新后，自动备份+时间戳
 - 会话记忆：
 查看会话历史、备份、恢复、清理sessions_repo
@@ -629,15 +629,15 @@ LLM 调用 load_skill_through_path，激活技能 + 激活对应工具组
       └── examples/
 
   system_repo/
-  ├── System.md              # 系统行为准则
+  ├── SYSTEM.md              # 系统行为准则
   ├── IntentAgent.md        # IntentAgent 输出格式约束
   ├── PlannerAgent.md       # PlannerAgent 输出格式约束
   └── SummaryAgent.md
 
   user_repo/
   └── {userId}/
-      ├── user_entities.md   # 用户实体知识
-      └── user_behavior.md   # 用户行为偏好
+      ├── SOUL.md   # 用户实体知识
+      └── MEMORY.md   # 用户行为偏好
 ============================================================================
   前后端异步轮询通信方案
 

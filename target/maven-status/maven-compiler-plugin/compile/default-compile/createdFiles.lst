@@ -2,15 +2,11 @@ agent\util\Exceptions$Handler.class
 agent\util\Events.class
 agent\util\Exceptions.class
 agent\service\SessionService$Status.class
-agent\config\AgentConfig.class
 agent\service\SummaryAgent.class
 agent\service\SessionService$Worker.class
 agent\util\MergedSystemFormatter.class
 agent\util\Tools.class
-agent\util\ApiResponse.class
 agent\util\ModelConfig$ModelType.class
-agent\service\Message.class
-agent\util\ChatRequest.class
 agent\service\SessionService.class
 agent\util\Exceptions$AgentExecutionException.class
 agent\ChatApplication.class
@@ -27,4 +23,3 @@ agent\service\PlannerAgent.class
 agent\util\ModelConfig.class
 agent\util\ModelConfig$Builder.class
 agent\controller\ChatController.class
-agent\util\ExecutionContext.class

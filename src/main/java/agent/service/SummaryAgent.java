@@ -38,15 +38,13 @@ public class SummaryAgent {
     private final SessionService sessionService;
     private final String systemRepoPath;
     private final String userRepoPath;
-    private MessageProducer messageProducer;
 
-    public SummaryAgent(ModelConfig modelConfig, String skillRepoPath, String systemRepoPath, String userRepoPath, String sessionRepoPath, MessageProducer messageProducer) {
+    public SummaryAgent(ModelConfig modelConfig, String skillRepoPath, String systemRepoPath, String userRepoPath, String sessionRepoPath) {
         this.memory = new InMemoryMemory();
         this.sessionRepoPath = sessionRepoPath;
         this.systemRepoPath = systemRepoPath;
         this.userRepoPath = userRepoPath;
         this.sessionService = new SessionService(sessionRepoPath);
-        this.messageProducer = messageProducer;
         this.executor = Executors.newFixedThreadPool(2);
 
         SkillBox skillBox = new SkillBox(new Toolkit());

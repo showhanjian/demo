@@ -63,24 +63,24 @@ public class SessionService {
     public static String loadSystemPrompt(String systemRepoPath, String userRepoPath, String userId) {
         StringBuilder prompt = new StringBuilder();
         try {
-            // 1. System.md - 系统行为准则
+            // 1. SYSTEM.md - 系统行为准则
             prompt.append("# 系统行为准则\n");
-            prompt.append(Files.readString(Paths.get(systemRepoPath, "System.md")));
+            prompt.append(Files.readString(Paths.get(systemRepoPath, "SYSTEM.md")));
             prompt.append("\n\n");
 
-            // 2. user_entities.md - 用户身份
+            // 2. SOUL.md - 用户身份
             prompt.append("# 用户信息\n");
-            if (Files.exists(Paths.get(userRepoPath, userId, "user_entities.md"))) {
-                prompt.append(Files.readString(Paths.get(userRepoPath, userId, "user_entities.md")));
+            if (Files.exists(Paths.get(userRepoPath, userId, "SOUL.md"))) {
+                prompt.append(Files.readString(Paths.get(userRepoPath, userId, "SOUL.md")));
             } else {
                 prompt.append("(未找到用户信息)");
             }
             prompt.append("\n\n");
 
-            // 3. user_behavior.md - 用户习惯
+            // 3. MEMORY.md - 用户习惯
             prompt.append("# 用户习惯\n");
-            if (Files.exists(Paths.get(userRepoPath, userId, "user_behavior.md"))) {
-                prompt.append(Files.readString(Paths.get(userRepoPath, userId, "user_behavior.md")));
+            if (Files.exists(Paths.get(userRepoPath, userId, "MEMORY.md"))) {
+                prompt.append(Files.readString(Paths.get(userRepoPath, userId, "MEMORY.md")));
             } else {
                 prompt.append("(未找到用户习惯)");
             }
