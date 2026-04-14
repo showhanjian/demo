@@ -8,7 +8,6 @@ Multi-agent system built on AgentScope framework (v1.0.9) with a 3-agent Pipelin
 - **Spring Boot**: 3.2.4
 - **Server Port**: 8080
 - **前端资源**: `src/main/resources/web/` (静态文件在 `web/`)
-- **lib_ref/**: AgentScope 库源码参考 (不可编辑)
 
 **项目根目录**: `D:\My_play\agentScope\demo`
 
@@ -20,6 +19,9 @@ mvn compile
 
 # 运行（Spring Boot）
 mvn spring-boot:run
+
+# 重启（停止、清日志、清会话、重启）Windows
+restart.bat
 ```
 
 ## 环境变量
@@ -119,7 +121,7 @@ this.agent = ReActAgent.builder()
 ## 前后端通信模式
 
 采用异步轮询模式：
-- 前端 POST `/api/chat/send` 发送消息，后端立即返回 `{"status": "ok"}`
+- 前端 POST `/api/chat/send` 发送消息，后端立即返回 `{"status": "success", "data": sessionId}`
 - 后台异步执行（线程池），事件写入 MessageStore
 - 前端轮询 GET `/api/events/pull?sessionId=` 获取事件
 
